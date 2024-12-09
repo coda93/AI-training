@@ -3,7 +3,10 @@ package com.example.demo.chat.service;
 import com.azure.ai.openai.OpenAIAsyncClient;
 import com.azure.ai.openai.OpenAIClientBuilder;
 import com.azure.core.credential.AzureKeyCredential;
+import com.example.demo.chat.dto.ChatParams;
 import com.example.demo.chat.dto.ChatResponse;
+import com.example.demo.chat.manger.ChatHistoryManager;
+import com.example.demo.chat.manger.PromptExecutionSettingsManager;
 import com.example.demo.exception.AIResponseException;
 import com.microsoft.semantickernel.Kernel;
 import com.microsoft.semantickernel.aiservices.openai.chatcompletion.OpenAIChatCompletion;
@@ -17,6 +20,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class ChatServiceImpl implements ChatService {
     private final Kernel kernel;
+    private final ChatHistoryManager chatHistoryManager;
+    private final PromptExecutionSettingsManager promptExecutionSettingsManager;
+
 
     public ChatServiceImpl(@Value("${client-openai-key}") String clientOpenAIKey,
                            @Value("${client-openai-endpoint}") String clientOpenAIEndpoint,
@@ -32,22 +38,50 @@ public class ChatServiceImpl implements ChatService {
         this.kernel = Kernel.builder()
                 .withAIService(ChatCompletionService.class, chatCompletionService)
                 .build();
+        this.chatHistoryManager = new ChatHistoryManager();
+        this.promptExecutionSettingsManager = new PromptExecutionSettingsManager();
     }
 
+    @Override
     public ChatResponse getChatResponse(String prompt) {
-        ChatHistory chatHistory = new ChatHistory();
         KernelFunction<String> chatFunction = getChatFunction();
         var response = kernel.invokeAsync(chatFunction)
-                .withArguments(getKernelFunctionArguments(prompt, chatHistory))
+                .withArguments(getKernelFunctionArguments(prompt, chatHistoryManager.getChatHistory()))
+                .withPromptExecutionSettings(promptExecutionSettingsManager.getSettings())
                 .block();
-        chatHistory.addUserMessage(prompt);
-
+        chatHistoryManager.addUserMessage(prompt);
         if (response == null) {
             throw new AIResponseException("There is no response from AI. Try with an another prompt");
         }
-        chatHistory.addAssistantMessage(response.getResult());
+        chatHistoryManager.addAssistantMessage(response.getResult());
         return ChatResponse.builder()
                 .aiResponse(response.getResult())
+                .build();
+    }
+
+    @Override
+    public ChatResponse sendSystemPrompt(String systemPrompt) {
+        chatHistoryManager.resetChatHistory();
+        chatHistoryManager.addSystemMessage(systemPrompt);
+        return ChatResponse.builder()
+                .aiResponse("You have just started a new chat with a provided system prompt --> " + systemPrompt)
+                .build();
+    }
+
+    @Override
+    public ChatResponse changePromptExecutionSettings(ChatParams chatParams) {
+        promptExecutionSettingsManager.updateSettings(chatParams);
+        return ChatResponse.builder()
+                .aiResponse("You have just started a new chat with the following parameters --> " + promptExecutionSettingsManager.getPromptExecutionSettingsString())
+                .build();
+    }
+
+    @Override
+    public ChatResponse reset() {
+        chatHistoryManager.resetChatHistory();
+        promptExecutionSettingsManager.resetPromptExecutionSettings();
+        return ChatResponse.builder()
+                .aiResponse("You have just started a new chat with clear chat history.")
                 .build();
     }
 
