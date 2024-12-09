@@ -16,7 +16,7 @@ public class ChatController {
     private static final String NEW_SETTINGS_DELIMITER_IN_LOGS = "******************************************************";
     private final ChatServiceImpl chatService;
 
-    @GetMapping()
+    @GetMapping
     public ChatResponse chat(@RequestParam String prompt) {
         log.info("Received user input: {}", prompt);
         ChatResponse response = chatService.getChatResponse(prompt);
