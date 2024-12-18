@@ -1,5 +1,7 @@
 spring.application.name: demo
 
-client-openai-key: ${OPENAI_API_KEY}
-client-openai-endpoint: ${OPENAI_API_ENDPOINT}
-client-openai-deployment-name: ${OPENAI_DEPLOYMENT_NAME}
+client-openai:
+  key: ${OPENAI_API_KEY}
+  endpoint: ${OPENAI_API_ENDPOINT}
+  deployments-list-path: /openai/deployments
+  deployment-name: ${OPENAI_DEPLOYMENT_NAME}

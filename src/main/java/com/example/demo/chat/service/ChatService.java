@@ -10,5 +10,7 @@ public interface ChatService {
 
     ChatResponse changePromptExecutionSettings(ChatParams promptExecutionSettings);
 
+    ChatResponse changeModel();
+
     ChatResponse reset();
 }
