@@ -26,16 +26,21 @@ public class ChatController {
 
     @GetMapping("/system-prompt")
     public ChatResponse sendSystemPrompt(@RequestParam String systemPrompt) {
-        log.warn(NEW_CHAT_DELIMITER_IN_LOGS);
-        log.info("Starting a new conversation with set the following system prompt: {}", systemPrompt);
+        printChangeSettingsLog("Starting a new conversation with set the following system prompt: " + systemPrompt);
         return chatService.sendSystemPrompt(systemPrompt);
     }
 
     @PostMapping("/settings")
     public ChatResponse sendSystemPrompt(@RequestBody ChatParams promptExecutionSettings) {
-        log.warn(NEW_SETTINGS_DELIMITER_IN_LOGS);
-        log.info("Starting a new conversation with set the following parameters: {}", promptExecutionSettings);
+        printChangeSettingsLog("Starting a new conversation with set the following parameters: " + promptExecutionSettings);
         return chatService.changePromptExecutionSettings(promptExecutionSettings);
+    }
+
+    @PutMapping("/model")
+    public ChatResponse changeModel() {
+        ChatResponse response = chatService.changeModel();
+        printChangeSettingsLog(response.aiResponse());
+        return response;
     }
 
     @DeleteMapping("/reset")
@@ -43,5 +48,10 @@ public class ChatController {
         log.info(NEW_CHAT_DELIMITER_IN_LOGS);
         log.info("You have just started a new chat with clear chat history and default prompt execution settings.");
         return chatService.reset();
+    }
+
+    private void printChangeSettingsLog(String info) {
+        log.warn(NEW_SETTINGS_DELIMITER_IN_LOGS);
+        log.info(info);
     }
 }
