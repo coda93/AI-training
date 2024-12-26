@@ -9,9 +9,14 @@ import com.example.demo.chat.dto.ChatResponse;
 import com.example.demo.chat.manger.ChatHistoryManager;
 import com.example.demo.chat.manger.DeploymentModelManager;
 import com.example.demo.chat.manger.PromptExecutionSettingsManager;
+import com.example.demo.chat.plugin.WeatherPlugin;
 import com.example.demo.exception.AIResponseException;
+import com.example.demo.weather.WeatherClient;
 import com.microsoft.semantickernel.Kernel;
 import com.microsoft.semantickernel.aiservices.openai.chatcompletion.OpenAIChatCompletion;
+import com.microsoft.semantickernel.orchestration.ToolCallBehavior;
+import com.microsoft.semantickernel.plugin.KernelPlugin;
+import com.microsoft.semantickernel.plugin.KernelPluginFactory;
 import com.microsoft.semantickernel.semanticfunctions.KernelFunction;
 import com.microsoft.semantickernel.semanticfunctions.KernelFunctionArguments;
 import com.microsoft.semantickernel.services.chatcompletion.ChatCompletionService;
@@ -24,16 +29,19 @@ public class ChatServiceImpl implements ChatService {
     private final ChatHistoryManager chatHistoryManager;
     private final PromptExecutionSettingsManager promptExecutionSettingsManager;
     private final DeploymentModelManager deploymentModelManager;
+    private final WeatherClient weatherClient;
     private Kernel kernel;
 
     public ChatServiceImpl(OpenAiProperties openAiProperties,
                            DeploymentModelManager deploymentModelManager,
                            ChatHistoryManager chatHistoryManager,
-                           PromptExecutionSettingsManager promptExecutionSettingsManager) {
+                           PromptExecutionSettingsManager promptExecutionSettingsManager,
+                           WeatherClient weatherClient) {
         this.chatHistoryManager = chatHistoryManager;
         this.promptExecutionSettingsManager = promptExecutionSettingsManager;
         this.deploymentModelManager = deploymentModelManager;
-        this.kernel = createKernel(openAiProperties);
+        this.weatherClient = weatherClient;
+        this.kernel = createKernelWithPlugin(openAiProperties);
     }
 
     @Override
@@ -43,6 +51,7 @@ public class ChatServiceImpl implements ChatService {
             var response = kernel.invokeAsync(chatFunction)
                     .withArguments(getKernelFunctionArguments(prompt, chatHistoryManager.getChatHistory()))
                     .withPromptExecutionSettings(promptExecutionSettingsManager.getSettings())
+                    .withToolCallBehavior(ToolCallBehavior.allowAllKernelFunctions(true))
                     .block();
 
             chatHistoryManager.addUserMessage(prompt);
@@ -84,7 +93,7 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public ChatResponse changeModel() {
         OpenAiProperties propertiesWithNewModel = deploymentModelManager.updateModel();
-        this.kernel = createKernel(propertiesWithNewModel);
+        this.kernel = createKernelWithPlugin(propertiesWithNewModel);
         return ChatResponse.builder()
                 .aiResponse("You have just changed the model to --> " + propertiesWithNewModel.getDeploymentName())
                 .build();
@@ -99,7 +108,7 @@ public class ChatServiceImpl implements ChatService {
                 .build();
     }
 
-    private Kernel createKernel(OpenAiProperties openAiProperties) {
+    private Kernel createKernelWithPlugin(OpenAiProperties openAiProperties) {
         String clientOpenAIKey = openAiProperties.getKey();
         String clientOpenAIEndpoint = openAiProperties.getEndpoint();
         String clientOpenAIDeploymentName = openAiProperties.getDeploymentName();
@@ -114,8 +123,11 @@ public class ChatServiceImpl implements ChatService {
                 .withOpenAIAsyncClient(openAIAsyncClient)
                 .build();
 
+        KernelPlugin weatherPlugin = KernelPluginFactory.createFromObject(new WeatherPlugin(weatherClient), "WeatherPlugin");
+
         return Kernel.builder()
                 .withAIService(ChatCompletionService.class, chatCompletionService)
+                .withPlugin(weatherPlugin)
                 .build();
     }
 
