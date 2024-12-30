@@ -5,3 +5,7 @@ client-openai:
   endpoint: ${OPENAI_API_ENDPOINT}
   deployments-list-path: /openai/deployments
   deployment-name: ${OPENAI_DEPLOYMENT_NAME}
+
+weather-api:
+  key: ${WEATHER_API_KEY}
+  endpoint: ${WEATHER_API_ENDPOINT}
