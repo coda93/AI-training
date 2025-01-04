@@ -20,8 +20,6 @@ public record EmbeddingSearchResponse(
     }
 
     @Builder
-    public record Usage(
-            int readUnits
-    ) {
+    public record Usage(int readUnits) {
     }
 }

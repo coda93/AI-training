@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Setter
 public class EmbeddingProperties {
-
     private String model;
     private int topK;
 }
