@@ -9,3 +9,16 @@ client-openai:
 weather-api:
   key: ${WEATHER_API_KEY}
   endpoint: ${WEATHER_API_ENDPOINT}
+
+pinecone:
+  key: ${PINECONE_KEY}
+  index-name: ${INDEX_NAME}
+  similarity-metric: ${SIMILARITY_METRIC}
+  dimension: ${DIMENSION}
+  cloud-provider: ${CLOUD_PROVIDER}
+  region: ${REGION}
+  namespace: ${PINECONE_NAMESPACE}
+
+embedding:
+  model: ${EMBEDDING_MODEL}
+  topK: ${TOP_K}
