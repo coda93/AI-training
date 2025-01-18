@@ -29,7 +29,7 @@ public class EmbeddingController {
     @PostMapping("/store")
     public ResponseEntity<List<Float>> buildAndStoreEmbedding(@RequestParam String id, @RequestBody EmbeddingGenerateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(embeddingService.storeEmbedding(id, request.inputText()));
+                .body(embeddingService.buildAndStoreEmbedding(id, request.inputText()));
     }
 
     @PostMapping("/search")
