@@ -9,7 +9,7 @@ public interface EmbeddingService {
 
     List<Float> generateEmbedding(String inputText);
 
-    List<Float> storeEmbedding(String id, String text);
+    List<Float> buildAndStoreEmbedding(String id, String text);
 
     QueryResponseWithUnsignedIndices searchClosestEmbeddings(String queryText);
 }

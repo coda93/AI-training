@@ -39,7 +39,7 @@ public class EmbeddingServiceImpl implements EmbeddingService {
         }
     }
 
-    public List<Float> storeEmbedding(String id, String text) {
+    public List<Float> buildAndStoreEmbedding(String id, String text) {
         try {
             List<Float> embeddingVector = getEmbedding(text, EmbeddingInputType.PASSAGE);
             Index index = getIndexConnection();

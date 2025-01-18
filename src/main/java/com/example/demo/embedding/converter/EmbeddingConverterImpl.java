@@ -4,6 +4,8 @@ import com.example.demo.embedding.dto.EmbeddingSearchResponse;
 import io.pinecone.unsigned_indices_model.QueryResponseWithUnsignedIndices;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class EmbeddingConverterImpl implements EmbeddingConverter {
 
@@ -30,4 +32,15 @@ public class EmbeddingConverterImpl implements EmbeddingConverter {
                 .build();
     }
 
+    public List<String> convertToListOfClosestEmbeddings(QueryResponseWithUnsignedIndices response) {
+        return response.getMatchesList()
+                .stream()
+                .map(match -> match.getMetadata()
+                        .getFieldsMap()
+                        .values()
+                        .iterator()
+                        .next()
+                        .getStringValue())
+                .toList();
+    }
 }
